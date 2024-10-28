@@ -15,7 +15,7 @@ import {
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { useEffect } from "react";
 
-import { prisma } from '#app/utils/db.server.ts'
+import { prisma } from "#app/utils/db.server.ts";
 import type { Contact } from "@prisma/client";
 
 import appStylesHref from "./app.css?url";
@@ -32,10 +32,12 @@ export const action = async () => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const url = new URL(request.url);
-	const q = url.searchParams.get("q")
+	const q = url.searchParams.get("q");
 	let contacts = await prisma.contact.findMany();
 	if (q) {
-		contacts = contacts.filter((c) => c.first?.includes(q) || c.last?.includes(q))
+		contacts = contacts.filter(
+			(c) => c.first?.includes(q) || c.last?.includes(q),
+		);
 	}
 	return json({ contacts, q });
 };
@@ -69,12 +71,12 @@ export default function App() {
 					<div>
 						<Form
 							id="search-form"
-              onChange={(event) => {
-                const isFirstSearch = q === null;
-                submit(event.currentTarget, {
-                  replace: !isFirstSearch,
-                });
-              }}
+							onChange={(event) => {
+								const isFirstSearch = q === null;
+								submit(event.currentTarget, {
+									replace: !isFirstSearch,
+								});
+							}}
 						>
 							<input
 								id="q"
