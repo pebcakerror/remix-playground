@@ -4,20 +4,25 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import type { FunctionComponent } from "react";
 import invariant from "tiny-invariant";
 
+import { prisma } from "#app/utils/db.server.ts";
+
 import { getContact, updateContact } from "../data";
 import type { ContactRecord } from "../data";
 
 export const action = async ({ params, request }: ActionFunctionArgs) => {
-	invariant(params.contactId, "Missing contactId param");
+	invariant(params.contactSlug, "Missing contactSlug param");
 	const formData = await request.formData();
-	return updateContact(params.contactId, {
+	return updateContact(params.contactSlug, {
 		favorite: formData.get("favorite") === "true",
 	});
 };
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-	invariant(params.contactId, "Missing contactId param");
-	const contact = await getContact(params.contactId);
+	invariant(params.contactSlug, "Missing contactSlug param");
+	// const contact = await getContact(params.contactSlug);
+	const contact = await prisma.contact.findFirst({
+		where: { slug: params.contactSlug },
+	});
 	if (!contact) {
 		throw new Response("Not Found", { status: 404 });
 	}
@@ -30,11 +35,13 @@ export default function Contact() {
 	return (
 		<div id="contact">
 			<div>
-				<img
-					alt={`${contact.first} ${contact.last} avatar`}
-					key={contact.avatar}
-					src={contact.avatar}
-				/>
+				{contact.avatar ? (
+					<img
+						alt={`${contact.first} ${contact.last} avatar`}
+						key={contact.avatar}
+						src={contact.avatar}
+					/>
+				) : null}
 			</div>
 
 			<div>
@@ -49,13 +56,7 @@ export default function Contact() {
 					<Favorite contact={contact} />
 				</h1>
 
-				{contact.twitter ? (
-					<p>
-						<a href={`https://twitter.com/${contact.twitter}`}>
-							{contact.twitter}
-						</a>
-					</p>
-				) : null}
+				{contact.bio ? <p>{contact.bio}</p> : null}
 
 				{contact.notes ? <p>{contact.notes}</p> : null}
 
